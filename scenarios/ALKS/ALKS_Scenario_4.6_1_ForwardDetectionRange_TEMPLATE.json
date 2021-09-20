@@ -1,0 +1,84 @@
+{
+    "title": "ALKS_Scenario_4.6_1_ForwardDetectionRange_TEMPLATE",
+    "description": "ALKS Scenario 4.6_1 ForwardDetectionRange Template",
+    "map_id": "ALKS_Road",
+    "actors": {
+        "ego": {
+            "description": "Ego",
+            "actor_id": 0,
+            "model_id": "vehicle.toyota.prius"
+        },
+        "others": [
+            {
+                "description": "TargetBlocking",
+                "actor_id": 1,
+                "model_id": "walker.pedestrian.0001"
+            }
+        ]
+    },
+    "scenario": {
+        "opening_scene": {
+            "ego": {
+                "start_position": {
+                    "wp_id": "Waypoint02",
+                    "wp_idx": 5
+                },
+                "end_position": {
+                    "wp_id": "Waypoint02",
+                    "wp_idx": 10000
+                }
+            },
+            "others": [
+                {
+                    "description": "TargetBlocking",
+                    "actor_id": 1,
+                    "start_position": {
+                        "type": "waypoint",
+                        "wp_id": "Waypoint02",
+                        "wp_idx": 500,
+                        "wp_offset": -5.25
+                    }
+                }
+            ],
+            "next_scenes": [
+                1
+            ]
+        },
+        "ending_scenes": [
+            {
+                "description": "simulation time elapsed 40sec",
+                "scene_id": 1,
+                "conditions": {
+                    "or": [
+                        {
+                            "position": {
+                                "description": "Ego reach goal position",
+                                "actor_id": 0,
+                                "type": "reach",
+                                "wp_id": "Waypoint02",
+                                "wp_idx": 10000,
+                                "tolerance": 1
+                            }
+                        },
+                        {
+                            "simulation_time": {
+                                "comparison": ">",
+                                "value": 3600
+                            }
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    "stop_conditions": {
+        "or": [
+            {
+                "simulation_time": {
+                    "comparison": ">",
+                    "value": 3600
+                }
+            }
+        ]
+    }
+}

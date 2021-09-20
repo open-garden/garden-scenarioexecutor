@@ -1,0 +1,191 @@
+{
+    "title": "ALKS_Scenario_4.1_3_SwervingSideVehicle_TEMPLATE",
+    "description": "ALKS Scenario 4.1_3 Swerving Side Vehicle Template",
+    "map_id": "ALKS_Road",
+    "actors": {
+        "ego": {
+            "description": "Ego",
+            "actor_id": 0,
+            "model_id": "vehicle.toyota.prius"
+        },
+        "others": [
+            {
+                "description": "SideVehicle",
+                "actor_id": 1,
+                "model_id": "vehicle.bmw.grandtourer",
+                "color": "ff0000"
+            }
+        ]
+    },
+    "scenario": {
+        "opening_scene": {
+            "ego": {
+                "start_position": {
+                    "wp_id": "Waypoint02",
+                    "wp_idx": 5
+                },
+                "end_position": {
+                    "wp_id": "Waypoint02",
+                    "wp_idx": 10000
+                }
+            },
+            "others": [
+                {
+                    "description": "SideVehicle",
+                    "actor_id": 1,
+                    "start_position": {
+                        "type": "waypoint",
+                        "wp_id": "Waypoint01",
+                        "wp_idx": 5
+                    },
+                    "start_speed": {
+                        "type": "relative",
+                        "target_actor_id": 0,
+                        "value": 0
+                    }
+                }
+            ],
+            "next_scenes": [
+                1
+            ]
+        },
+        "scenes": [
+            {
+                "description": "Scenario Start when Ego Speed >= 60kmph",
+                "scene_id": 1,
+                "conditions": {
+                    "and": [
+                        {
+                            "speed": {
+                                "description": "ego speed >= 60kmph",
+                                "actor_id": 0,
+                                "type": "absolute",
+                                "comparison": ">=",
+                                "value": 60
+                            }
+                        }
+                    ]
+                },
+                "actions": [
+                    {
+                        "speed": {
+                            "description": "set SideVehicle speed 60kmph",
+                            "actor_id": 1,
+                            "type": "absolute",
+                            "value": 60
+                        }
+                    }
+                ],
+                "next_scenes": [
+                    2
+                ]
+            },
+            {
+                "description": "preSwerveEvent",
+                "scene_id": 2,
+                "duration": 5.0,
+                "conditions": {
+                    "and": [
+                        {
+                            "speed": {
+                                "actor_id": 1,
+                                "type": "absolute",
+                                "comparison": ">=",
+                                "value": 60
+                            }
+                        }
+                    ]
+                },
+                "actions": [
+                ],
+                "next_scenes": [
+                    3
+                ]
+            },
+            {
+                "description": "SwerveEvent",
+                "scene_id": 3,
+                "conditions": {
+                },
+                "actions": [
+                    {
+                        "route_move": {
+                            "actor_id": 1,
+                            "type": "wp_offset",
+                            "route": [
+                                {
+                                    "time": 2,
+                                    "wp_offset": 1.0
+                                },
+                                {
+                                    "time": 5,
+                                    "wp_offset": 1.0
+                                },
+                                {
+                                    "time": 2,
+                                    "wp_offset": 0.0
+                                },
+                                {
+                                    "time": 2,
+                                    "wp_offset": -1.0
+                                },
+                                {
+                                    "time": 5,
+                                    "wp_offset": -1.0
+                                },
+                                {
+                                    "time": 2,
+                                    "wp_offset": 0.0
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "next_scenes": [
+                    4
+                ]
+            }
+        ],
+        "ending_scenes": [
+            {
+                "description": "simulation time elapsed 40sec",
+                "scene_id": 4,
+                "conditions": {
+                    "or": [
+                        {
+                            "position": {
+                                "description": "Ego reach goal position",
+                                "type": "reach",
+                                "actor_id": 0,
+                                "wp_id": "Waypoint02",
+                                "wp_idx": 10000,
+                                "tolerance": 1
+                            }
+                        },
+                        {
+                            "simulation_time": {
+                                "comparison": ">",
+                                "value": 3600
+                            }
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    "stop_conditions": {
+        "or": [
+            {
+                "simulation_time": {
+                    "comparison": ">",
+                    "value": 3600
+                }
+            }
+        ]
+    }
+}
+
+
+
+
+

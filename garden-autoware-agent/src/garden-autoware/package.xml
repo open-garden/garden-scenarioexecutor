@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>garden-autoware</name>
+  <version>0.0.0</version>
+  <description>The garden-autoware package</description>
+  <maintainer email="todo@todo.todo">todo</maintainer>
+  <license>todo</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>gnss</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>pcl_conversions</build_depend>
+  <build_depend>carla_msgs</build_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>gnss</exec_depend>
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>tf</exec_depend>
+  <exec_depend>pcl_conversions</exec_depend>
+  <exec_depend>carla_msgs</exec_depend>
+
+</package>

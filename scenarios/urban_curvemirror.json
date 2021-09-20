@@ -1,0 +1,158 @@
+{
+    "title": "カーブミラー認シナリオ　パターン01",
+    "description": "自社が直進、他車が直進するパターン,他車複数台",
+
+    "map_id": "urban",
+    "actors": {
+        "ego": {
+            "actor_id": 0,
+            "model_id": "vehicle.bmw.grandtourer"
+        },
+        "others": [
+            {
+                "actor_id": 1,
+                "model_id": "vehicle.audi.tt",
+                "color": "0000ff"
+            },
+            {
+                "actor_id": 2,
+                "model_id": "vehicle.audi.etron",
+                "color": "000000"
+            },
+            {
+                "actor_id": 3,
+                "model_id": "vehicle.bmw.grandtourer",
+                "color": "00ffff"
+            }
+        ]
+    },
+    "scenario": {
+        "opening_scene": {
+            "ego": {
+                "description": "自車",
+                "start_position": {
+                    "wp_id": "CurveMirrorWaypoint01",
+                    "wp_idx": 0
+                },
+                "end_position": {
+                    "wp_id": "CurveMirrorWaypoint01",
+                    "wp_idx": 150
+                }
+            },
+            "others": [
+                {
+                    "description": "他車1",
+                    "actor_id": 1,
+                    "start_position": {
+                        "type": "waypoint",
+                        "wp_id": "CurveMirrorWaypoint03",
+                        "wp_idx": 120
+                    },
+                    "start_speed": {
+                        "description": "他車1速度",
+                        "type": "absolute",
+                        "value": 20
+                    }
+                },
+                {
+                    "description": "他車2",
+                    "actor_id": 2,
+                    "start_position": {
+                        "type": "waypoint",
+                        "wp_id": "CurveMirrorWaypoint03",
+                        "wp_idx": 100
+                    },
+                    "start_speed": {
+                        "description": "他車2速度",
+                        "type": "absolute",
+                        "value": 19
+                    }
+                },
+                {
+                    "description": "他車3",
+                    "actor_id": 3,
+                    "start_position": {
+                        "type": "waypoint",
+                        "wp_id": "CurveMirrorWaypoint03",
+                        "wp_idx": 50
+                    },
+                    "start_speed": {
+                        "description": "他車3速度",
+                        "type": "absolute",
+                        "value": 22
+                   }
+                }
+            ],
+            "next_scenes": [
+                1
+            ]
+        },
+        "scenes": [
+            {
+                "description": "Scenario Start when Ego Speed >= 10kmph",
+                "scene_id": 1,
+                "duration": 5,
+                "conditions": {
+                    "and": [
+                        {
+                            "speed": {
+                                "description": "ego speed >= 10kmph",
+                                "actor_id": 0,
+                                "type": "absolute",
+                                "comparison": ">=",
+                                "value": 10
+                            }
+                        }
+                    ]
+                },
+                "actions": [],
+                "next_scenes": [
+                    2
+                ]
+            }
+        ],
+        "ending_scenes": [
+            {
+                "description": "自車が指定場所への到着シーンで終了",
+                "scene_id": 2,
+                "conditions": {
+                    "or": [
+                        {
+                            "position": {
+                                "actor_id": 0,
+                                "type": "reach",
+                                "wp_id": "CurveMirrorWaypoint02",
+                                "wp_idx": 142,
+                                "tolerance": 1
+                            }
+                        },
+                        {
+                            "simulation_time": {
+                                "comparison": ">=",
+                                "value": 300
+                            }
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    "stop_conditions": {
+        "or": [
+            {
+                "simulation_time": {
+                    "description": "5分経過で終了",
+                    "comparison": ">=",
+                    "value": 300
+                }
+            },
+            {
+                "collision": {
+                  "description": "衝突で終了",
+                  "actor_id": 0,
+                  "target_actor_id": 1
+                }
+            }
+        ]
+    }
+}

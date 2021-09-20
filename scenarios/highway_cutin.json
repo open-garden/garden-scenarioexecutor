@@ -1,0 +1,213 @@
+{
+    "map_id": "highway",
+    "actors": {
+        "ego": {
+            "actor_id": 0,
+            "model_id": "vehicle.bmw.grandtourer"
+        },
+        "others": [
+            {
+                "actor_id": 1,
+                "model_id": "vehicle.audi.tt",
+                "color": "ff0000"
+            }
+        ]
+    },
+    "scenario": {
+        "opening_scene": {
+            "ego": {
+                "start_position": {
+                    "wp_id": "Waypoint02",
+                    "wp_idx": 500
+                },
+                "end_position": {
+                    "wp_id": "Waypoint02",
+                    "wp_idx": 10000
+                }
+            },
+            "others": [
+                {
+                    "actor_id": 1,
+                    "start_position": {
+                        "type": "waypoint",
+                        "wp_id": "Waypoint01",
+                        "wp_idx": 524
+                    },
+                    "start_speed": {
+                        "type": "relative",
+                        "target_actor_id": 0,
+                        "value": 0
+                    }
+                }
+            ],
+            "next_scenes": [
+                1
+            ]
+        },
+        "scenes": [
+            {
+                "scene_id": 1,
+                "conditions": {
+                    "or": [
+                        {
+                            "position": {
+                                "actor_id": 1,
+                                "type": "reach",
+                                "wp_id": "Waypoint01",
+                                "wp_idx": 810,
+                                "tolerance": 2
+                            }
+                        },
+                        {
+                            "simulation_time": {
+                                "comparison": ">=",
+                                "value": 180
+                            }
+                        }
+                    ]
+                },
+                "actions": [
+                    {
+                        "speed": {
+                            "actor_id": 1,
+                            "type": "absolute",
+                            "value": 95,
+                            "accel": {
+                                "type": "specify",
+                                "value": 1
+                            }
+                        }
+                    }
+                ],
+                "next_scenes": [
+                    2
+                ]
+            },
+            {
+                "scene_id": 2,
+                "conditions": {
+                    "or": [
+                        {
+                            "position": {
+                                "actor_id": 1,
+                                "type": "reach",
+                                "wp_id": "Waypoint01",
+                                "wp_idx": 880,
+                                "tolerance": 2
+                            }
+                        }
+                    ]
+                },
+                "actions": [
+                    {
+                        "speed": {
+                            "actor_id": 1,
+                            "type": "absolute",
+                            "value": 85,
+                            "accel": {
+                                "type": "specify",
+                                "value": 1
+                            }
+                        }
+                    }
+                ],
+                "next_scenes": [
+                    3
+                ]
+            },
+            {
+                "scene_id": 3,
+                "duration": 3,
+                "conditions": {
+                    "or": [
+                        {
+                            "position": {
+                                "actor_id": 1,
+                                "type": "reach",
+                                "wp_id": "Waypoint01",
+                                "wp_idx": 950,
+                                "tolerance": 2
+                            }
+                        }
+                    ]
+                },
+                "actions": [
+                    {
+                        "light_state": {
+                            "actor_id": 1,
+                            "blinker_right": true
+                        }
+                    }
+                ],
+                "next_scenes": [
+                    4
+                ]
+            },
+            {
+                "scene_id": 4,
+                "duration": 5,
+                "actions": [
+                    {
+                        "lane_change": {
+                            "actor_id": 1,
+                            "type": "lane",
+                            "wp_id": "Waypoint02",
+                            "time": 3
+                        }
+                    }
+                ],
+                "next_scenes": [
+                    5
+                ]
+            },
+            {
+                "scene_id": 5,
+                "actions": [
+                    {
+                        "light_state": {
+                            "actor_id": 1,
+                            "blinker_right": false
+                        }
+                    }
+                ],
+                "next_scenes": [
+                    6
+                ]
+            }
+        ],
+        "ending_scenes": [
+            {
+                "scene_id": 6,
+                "conditions": {
+                    "or": [
+                        {
+                            "position": {
+                                "actor_id": 1,
+                                "type": "reach",
+                                "wp_id": "Waypoint02",
+                                "wp_idx": 1900,
+                                "tolerance": 2
+                            }
+                        },
+                        {
+                            "simulation_time": {
+                                "comparison": ">=",
+                                "value": 3600
+                            }
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    "stop_conditions": {
+        "or": [
+            {
+                "simulation_time": {
+                    "comparison": ">=",
+                    "value": 3600
+                }
+            }
+        ]
+    }
+}

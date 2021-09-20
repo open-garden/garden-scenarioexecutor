@@ -1,0 +1,149 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- ROS-BRIDGE -->
+  <param name="use_sim_time" value="true"/>
+  <arg name='host' default='localhost'/>
+  <arg name='port' default='2000'/>
+  <arg name='timeout' default='10'/>
+  <arg name='passive' default='false'/>
+  <arg name='synchronous_mode' default='false'/>
+  <arg name='synchronous_mode_wait_for_vehicle_control_command' default='false'/>
+  <arg name='fixed_delta_seconds' default='0.05'/>
+  <arg name='role_name' default='ego_vehicle'/>
+  <arg name='spawn_point' default=''/>
+  <arg name='town' default=''/>
+
+  <include file='$(find carla_ros_bridge)/launch/carla_ros_bridge.launch'>
+    <arg name='host' value='$(arg host)'/>
+    <arg name='port' value='$(arg port)'/>
+    <arg name='town' value='$(arg town)'/>
+    <arg name='timeout' value='$(arg timeout)'/>
+    <arg name='passive' value='$(arg passive)'/>
+    <arg name='synchronous_mode' value='$(arg synchronous_mode)'/>
+    <arg name='synchronous_mode_wait_for_vehicle_control_command' value='$(arg synchronous_mode_wait_for_vehicle_control_command)'/>
+    <arg name='fixed_delta_seconds' value='$(arg fixed_delta_seconds)'/>
+  </include>
+
+  <arg name='objects_definition_file' default='$(find garden-autoware)/config/sensor/objects.json'/>
+
+  <include file='$(find carla_spawn_objects)/launch/carla_example_ego_vehicle.launch'>
+    <arg name='objects_definition_file' value='$(arg objects_definition_file)'/>
+    <arg name='role_name' value='$(arg role_name)'/>
+    <arg name='spawn_point_ego_vehicle' value='$(arg spawn_point)'/>
+    <arg name='spawn_sensors_only' value='false'/>
+  </include>
+
+  <include file='$(find carla_manual_control)/launch/carla_manual_control.launch'>
+    <arg name='role_name' value='$(arg role_name)'/>
+  </include>
+
+  <node pkg="carla_ackermann_control" type="carla_ackermann_control_node.py" name="carla_ackermann_control_$(arg role_name)" output="screen">
+    <param name='role_name' value='$(arg role_name)'/>
+    <param name="control_loop_rate" value="0.05" />
+    <rosparam file='$(find garden-autoware)/config/pid/settings.yaml' command='load' />
+  </node>
+
+  <!-- AUTOWARE -->
+  <arg name='wheelbase' default='2.7' />
+  <arg name='waypoint' default='waypoint.csv'/>
+
+  <param name='/vehicle_info/wheel_base' type='double' value='$(arg wheelbase)' />
+  <param name='/vehicle_info/minimum_turning_radius' type='double' value='5.5' />
+  <param name='/vehicle_info/maximum_steering_angle' type='double' value='70' />
+  <param name='/role_name' type='string' value='$(arg role_name)' />
+
+  <!-- tf remapping -->
+  <node pkg='tf'  type='static_transform_publisher' name='$(arg role_name)_to_baselink' args='0 0 0 0 0 0 /$(arg role_name) /base_link 10' />
+  <include file='$(find carla_autoware_bridge)/launch/tf.launch'>
+    <arg name='role_name' value='$(arg role_name)'/>
+  </include>
+
+  <!--lidar -->
+  <node pkg='topic_tools' type='relay' name='lidar_points_relay' args='/carla/$(arg role_name)/lidar /points_raw'/>
+
+  <!-- camera -->
+  <node pkg='topic_tools' type='relay' name='image_relay' args='/carla/$(arg role_name)/rgb_front/image /image_raw'/>
+
+  <!-- odometry -->
+  <node pkg='carla_autoware_bridge' type='odometry_to_posestamped' name='odometry_to_posestamped'/>
+
+  <!-- convert twist to carla ackermann drive-->
+  <node pkg='carla_autoware_bridge' type='vehiclecmd_to_ackermanndrive' name='vehiclecmd_to_ackermanndrive' output='screen'>
+    <param name='wheelbase' value='$(arg wheelbase)'/>
+  </node>
+
+  <!-- my_sensing -->
+  <include file='$(find points_preprocessor)/launch/ray_ground_filter.launch' >
+    <arg name='min_point_distance' default='2.8' />
+  </include>
+
+  <!-- my_localization -->
+  <!-- vel_pose_mux -->
+  <include file='$(find autoware_connector)/launch/vel_pose_connect.launch'>
+    <arg name='topic_pose_stamped' value='/gnss_pose' />
+    <arg name='topic_twist_stamped' value='/estimate_twist' />
+  </include>
+
+  <!-- gnss_localizer -->
+  <node pkg='topic_tools' type='relay' name='gnss_localizer_relay' args='/gnss_pose /localizer_pose' />
+  <node pkg='garden-autoware' type='gnss_localizer' name='gnss_localizer' output='screen' />
+
+  <!-- my_mission -->
+  <!-- waypoint_loader -->
+  <include file='$(find waypoint_maker)/launch/waypoint_loader.launch'>
+    <arg name='load_csv' value='true' />
+    <arg name='multi_lane_csv' value='$(find garden-autoware)/config/waypoint/$(arg waypoint)' />
+    <arg name='replanning_mode' default='false' />
+    <arg name='resample_mode' default='false' />
+    <arg name='realtime_tuning_mode' default='false' />
+    <arg name='replan_curve_mode' default='true' />
+    <arg name='velocity_max' default='120' />
+    <arg name='radius_thresh' default='200' />
+  </include>
+
+  <!-- lane_rule -->
+  <node pkg='lane_planner' type='lane_rule' name='lane_rule' />
+
+  <!-- lane_select -->
+  <node pkg='lane_planner' type='lane_select' name='lane_select' />
+
+  <!-- lane_stop -->
+  <node pkg='lane_planner' type='lane_stop' name='lane_stop' />
+
+  <!-- my_motion -->
+  <!-- obstacle_avoid -->
+  <include file='$(find waypoint_planner)/launch/astar_avoid.launch' />
+
+  <!-- velocity_set -->
+  <include file='$(find waypoint_planner)/launch/velocity_set.launch'>
+    <arg name='stop_distance_obstacle' default='5.0' />
+    <arg name='points_threshold' default='0' />
+    <arg name='deceleration_obstacle' default='10.0' />
+  </include>
+
+  <!-- pure_pursuit -->
+  <include file='$(find pure_pursuit)/launch/pure_pursuit.launch'>
+    <arg name='publishes_for_steering_robot' default='true'/>
+  </include>
+
+  <!-- twist_filter -->
+  <include file='$(find twist_filter)/launch/twist_filter.launch'/>
+
+  <!-- my_detection -->
+  <include file='$(find vision_darknet_detect)/launch/vision_yolo3_detect.launch'>
+    <arg name='network_definition_file' default='$(find garden-autoware)/config/yolo/yolov3.cfg'/>
+    <arg name='pretrained_model_file' default='$(find garden-autoware)/config/yolo/yolov3.weights'/>
+    <arg name='names_file' default='$(find garden-autoware)/config/yolo/coco.names'/>
+  </include>
+
+  <!-- vehicle_description -->
+  <include file='$(find vehicle_description)/launch/vehicle_model.launch'>
+    <arg name='model_path' default='$(find garden-autoware)/config/urdf/prius.urdf'/>
+  </include>
+
+  <!-- manual_control -->
+  <node pkg='garden-autoware' type='hand_over' name='hand_over' output='screen'>
+    <param name='role_name' value='$(arg role_name)' />
+  </node>
+
+</launch>
